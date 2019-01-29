@@ -7,6 +7,10 @@ import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -58,9 +62,38 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.i("URL Content", result);
 
+                //Get IDs from result
+                JSONArray jsonArray = new JSONArray(result);
+                int numOfItems = 10;
+                if(jsonArray.length() < numOfItems)
+                    numOfItems = jsonArray.length();
+                for (int i = 0; i < numOfItems; i++) {
+                    String articleId = jsonArray.getString(i);
+                    String urlString = "https://hacker-news.firebaseio.com/v0/item/" + articleId + ".json?print=pretty";
+                    url = new URL(urlString);
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    in = urlConnection.getInputStream();
+                    reader =  new InputStreamReader(in);
+                    data = reader.read();
+                    String articleInfo = "";
+                    while(data != -1) {
+                        char currChar = (char) data;
+                        articleInfo += currChar;
+                        data = reader.read();
+                    }
+
+                    JSONObject jsonObject = new JSONObject(articleInfo);
+                    String articleTitle = jsonObject.getString("title");
+                    String articleUrl = jsonObject.getString("url");
+                    Log.i("info", articleTitle + " : " + articleUrl);
+                }
+
+
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
 
